@@ -7,12 +7,8 @@ from typing import Final
 
 import aiohttp
 
-from .const import LOGGER
-
-# Modified from https://github.com/hfern/winix to support async operations
-
-ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
-ATTR_CHILD_LOCK: Final = "child_lock"
+# kyet: 일일이 적어? 굳이?
+from .const import *
 
 
 @unique
@@ -26,185 +22,37 @@ class BrightnessLevel(Enum):
 
 
 class WinixDriver:
-    """WinixDevice driver."""
+    """Winix Device driver."""
 
     # pylint: disable=line-too-long
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
-    PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
 
-    category_keys = {
-        "power": "A02",
-        "mode": "A03",
-        "airflow": "A04",
-        "aqi": "A05",
-        "plasma": "A07",
-        ATTR_BRIGHTNESS_LEVEL: "A16",
-        ATTR_CHILD_LOCK: "A08",
-        "filter_hour": "A21",
-        "air_quality": "S07",
-        "air_qvalue": "S08",
-        "ambient_light": "S14",
-    }
-
-    state_keys = {
-        "power": {"off": "0", "on": "1"},
-        "mode": {"auto": "01", "manual": "02"},
-        "airflow": {
-            "low": "01",
-            "medium": "02",
-            "high": "03",
-            "turbo": "05",
-            "sleep": "06",
-        },
-        ATTR_CHILD_LOCK: {"off": "0", "on": "1"},
-        "plasma": {"off": "0", "on": "1"},
-        "air_quality": {"good": "01", "fair": "02", "poor": "03"},
-    }
+    category_keys = None
+    state_keys = None
 
     def __init__(self, device_id: str, client: aiohttp.ClientSession) -> None:
         """Create an instance of WinixDevice."""
         self.device_id = device_id
         self._client = client
 
-    async def turn_off(self) -> None:
-        """Turn the device off."""
-        await self._rpc_attr(
-            self.category_keys["power"], self.state_keys["power"]["off"]
+    async def control(self, category: str, state: str):
+        """Control device."""
+        LOGGER.debug(f"control category={category}, value={value}")
+        url = self.CTRL_URL.format(
+            deviceid=self.id,
+            attribute=self.category_keys[category],
+            value=self.state_keys[category][state]
         )
-
-    async def turn_on(self) -> None:
-        """Turn the device on."""
-        await self._rpc_attr(
-            self.category_keys["power"], self.state_keys["power"]["on"]
-        )
-
-    async def auto(self) -> None:
-        """Set device in auto mode."""
-        await self._rpc_attr(
-            self.category_keys["mode"], self.state_keys["mode"]["auto"]
-        )
-
-    async def manual(self) -> None:
-        """Set device in manual mode."""
-        await self._rpc_attr(
-            self.category_keys["mode"], self.state_keys["mode"]["manual"]
-        )
-
-    async def child_lock_off(self) -> None:
-        """Turn child lock off."""
-        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "0")
-
-    async def child_lock_on(self) -> None:
-        """Turn child lock on."""
-        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "1")
-
-    async def set_brightness_level(self, value: int) -> bool:
-        """Set brightness level."""
-        if not any(e.value == value for e in BrightnessLevel):
-            return False
-
-        await self._rpc_attr(self.category_keys[ATTR_BRIGHTNESS_LEVEL], value)
-        return True
-
-    async def plasmawave_off(self) -> None:
-        """Turn plasmawave off."""
-        await self._rpc_attr(
-            self.category_keys["plasma"], self.state_keys["plasma"]["off"]
-        )
-
-    async def plasmawave_on(self) -> None:
-        """Turn plasmawave on."""
-        await self._rpc_attr(
-            self.category_keys["plasma"], self.state_keys["plasma"]["on"]
-        )
-
-    async def low(self) -> None:
-        """Set speed low."""
-        await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["low"]
-        )
-
-    async def medium(self) -> None:
-        """Set speed medium."""
-        await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["medium"]
-        )
-
-    async def high(self) -> None:
-        """Set speed high."""
-        await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["high"]
-        )
-
-    async def turbo(self) -> None:
-        """Set speed turbo."""
-        await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["turbo"]
-        )
-
-    async def sleep(self) -> None:
-        """Set device in sleep mode."""
-        await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["sleep"]
-        )
-
-    async def _rpc_attr(self, attr: str, value: str) -> None:
-        LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
-        resp = await self._client.get(
-            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
-            raise_for_status=True,
-        )
+        resp = await self._client.get(url, raise_for_status=True)
         raw_resp = await resp.text()
         LOGGER.debug("_rpc_attr response=%s", raw_resp)
-
-    async def get_filter_life(self) -> int | None:
-        """Get the total filter life."""
-        response = await self._client.get(
-            self.PARAM_URL.format(deviceid=self.device_id)
-        )
-        if response.status != 200:
-            LOGGER.error("Error getting filter life, status code %s", response.status)
-            return None
-
-        json = await response.json()
-
-        # pylint: disable=pointless-string-statement
-        """
-        {
-            'statusCode': 200, 'headers': {'resultCode': 'S100', 'resultMessage': ''},
-            'body': {
-                'deviceId': '847207352CE0_364yr8i989', 'totalCnt': 1,
-                'data': [
-                    {
-                        'apiNo': 'A240', 'apiGroup': '004', 'modelId': 'C545', 'attributes': {'P01': '6480'}
-                    }
-                ]
-            }
-        }
-        """
-
-        headers = json.get("headers", {})
-        if headers.get("resultMessage") == "no data":
-            LOGGER.info("No filter life data received")
-            return None
-
-        try:
-            attributes = json["body"]["data"][0]["attributes"]
-            if attributes:
-                return int(attributes["P01"])
-        except Exception:  # pylint: disable=broad-except # noqa: BLE001
-            return None
 
     async def get_state(self) -> dict[str, str | int]:
         """Get device state."""
 
-        # All devices seem to have max 9 months filter life so don't need to call this API.
-        # await self.get_filter_life()
-
-        response = await self._client.get(
-            self.STATE_URL.format(deviceid=self.device_id)
-        )
+        url = self.STATE_URL.format(deviceid=self.device_id)
+        response = await self._client.get(url)
         if response.status != 200:
             LOGGER.error("Error getting data, status code %s", response.status)
             return {}
@@ -260,3 +108,139 @@ class WinixDriver:
                         output[category] = int(attribute)
 
         return output
+
+
+class AirPurifierDevice(WinixDevice):
+    """Winix Air Purifier driver."""
+
+    # pylint: disable=line-too-long
+    PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
+
+    category_keys = {
+        "power": "A02",
+        "mode": "A03",
+        "airflow": "A04",
+        "aqi": "A05",
+        "plasma": "A07",
+        ATTR_CHILD_LOCK: "A08",
+        ATTR_BRIGHTNESS_LEVEL: "A16",
+        "filter_hour": "A21",
+        "air_quality": "S07",
+        "air_qvalue": "S08",
+        "ambient_light": "S14",
+    }
+
+    state_keys = {
+        "power": {"off": "0", "on": "1"},
+        "mode": {"auto": "01", "manual": "02"},
+        "airflow": {
+            "low": "01",
+            "medium": "02",
+            "high": "03",
+            "turbo": "05",
+            "sleep": "06",
+        },
+        ATTR_CHILD_LOCK: {"off": "0", "on": "1"},
+        "plasma": {"off": "0", "on": "1"},
+        "air_quality": {"good": "01", "fair": "02", "poor": "03"},
+    }
+
+    async def set_brightness_level(self, value: int) -> bool:
+        """Set brightness level."""
+        if not any(e.value == value for e in BrightnessLevel):
+            return False
+
+        await self.control(self.category_keys[ATTR_BRIGHTNESS_LEVEL], value)
+        return True
+
+    async def get_filter_life(self) -> int | None:
+        """Get the total filter life."""
+        response = await self._client.get(
+            self.PARAM_URL.format(deviceid=self.device_id)
+        )
+        if response.status != 200:
+            LOGGER.error("Error getting filter life, status code %s", response.status)
+            return None
+
+        json = await response.json()
+
+        # pylint: disable=pointless-string-statement
+        """
+        {
+            'statusCode': 200, 'headers': {'resultCode': 'S100', 'resultMessage': ''},
+            'body': {
+                'deviceId': '847207352CE0_364yr8i989', 'totalCnt': 1,
+                'data': [
+                    {
+                        'apiNo': 'A240', 'apiGroup': '004', 'modelId': 'C545', 'attributes': {'P01': '6480'}
+                    }
+                ]
+            }
+        }
+        """
+
+        headers = json.get("headers", {})
+        if headers.get("resultMessage") == "no data":
+            LOGGER.info("No filter life data received")
+            return None
+
+        try:
+            attributes = json["body"]["data"][0]["attributes"]
+            if attributes:
+                return int(attributes["P01"])
+        except Exception:  # pylint: disable=broad-except # noqa: BLE001
+            return None
+
+
+class DehumidifierDevice(WinixDevice):
+    """Winix Dehumidifier driver."""
+
+    category_keys = {
+        ATTR_POWER: "D02",
+        ATTR_MODE: "D03",
+        ATTR_AIRFLOW: "D04",
+        ATTR_TARGET_HUMIDITY: "D05",
+        ATTR_CHILD_LOCK: "D08",
+        ATTR_CURRENT_HUMIDITY: "D10",
+        ATTR_WATER_BUCKET: "D11",
+        ATTR_UV_SANITIZE: "D13",
+        ATTR_TIMER: "D15",
+    }
+
+    state_keys = {
+        ATTR_POWER: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1",
+            OFF_DRY_VALUE: "2"
+        },
+        ATTR_MODE: {
+            MODE_AUTO: "01",
+            MODE_MANUAL: "02",
+            MODE_CLOTHES: "03",
+            MODE_SHOES: "04",
+            MODE_QUIET: "05",
+            MODE_CONTINUEOUS: "06"
+        },
+        ATTR_AIRFLOW: {
+            AIRFLOW_HIGH: "01",
+            AIRFLOW_LOW: "02",
+            AIRFLOW_TURBO: "03",
+        },
+        ATTR_CHILD_LOCK: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1"
+        },
+        ATTR_WATER_BUCKET: {
+            OFF_VALUE: "0",  # not full
+            ON_VALUE: "1"  # full or bucket detached
+        },
+        ATTR_UV_SANITIZE: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1"
+        },
+    }
+
+
+class AirConditionerDevice(WinixDevice):
+    """Winix Air Conditioner driver."""
+    pass # TBD

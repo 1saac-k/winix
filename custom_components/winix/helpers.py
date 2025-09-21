@@ -103,6 +103,8 @@ class Helpers:
 
         return await hass.async_add_executor_job(_refresh, response)
 
+    # kyet: 물통 알람 기능 추가?
+    # kyet: driver 쪽으로 이동해야 되는거 아닌가?
     @staticmethod
     async def get_filter_alarm_duration(
         client: aiohttp.ClientSession,
@@ -155,15 +157,6 @@ class Helpers:
         Raises WinixException.
         """
 
-        # Modified from https://github.com/hfern/winix to support additional attributes.
-
-        # com.google.gson.k kVar = new com.google.gson.k();
-        # kVar.p("accessToken", deviceMainActivity2.f2938o);
-        # kVar.p("uuid", Common.w(deviceMainActivity2.f2934k));
-        # new com.winix.smartiot.util.o0(deviceMainActivity2.f2934k, "https://us.mobile.winix-iot.com/getDeviceInfoList", kVar).a(new TypeToken<g4.v>() {
-        #  // from class: com.winix.smartiot.activity.DeviceMainActivity.9
-        # }, new com.winix.smartiot.activity.d(deviceMainActivity2, 4));
-
         resp = await client.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
             json={
@@ -197,6 +190,7 @@ class Helpers:
                 filter_replace_date=item.get("filterReplaceDate"),
                 model=item.get("modelName"),
                 sw_version=item.get("mcuVer"),
+                product_group=item.get("productGroup"),
             )
             for item in response_json["deviceInfoList"]
         ]

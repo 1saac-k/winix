@@ -26,13 +26,23 @@ ATTR_LOCATION: Final = "location"
 ATTR_MODE: Final = "mode"
 ATTR_PLASMA: Final = "plasma"
 ATTR_POWER: Final = "power"
+ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
+ATTR_CHILD_LOCK: Final = "child_lock"
+ATTR_TARGET_HUMIDITY: Final = "target_humidity"
+ATTR_CURRENT_HUMIDITY: Final = "current_humidity"
+ATTR_WATER_BUCKET: Final = "water_bucket"
+ATTR_UV_SANITIZE: Final = "uv_sanitize"
+ATTR_TIMER: Final = "timer"
 
 SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_AQI: Final = "aqi"
 SENSOR_FILTER_LIFE: Final = "filter_life"
 
+BINARY_SENSOR_WATER_BUCKET: Final = "water_bucket"
+
 OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
+OFF_DRY_VALUE: Final = "off-dry"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
@@ -67,6 +77,10 @@ DEFAULT_POST_TIMEOUT: Final = 5
 # mode can contain the special preset value of manual.
 MODE_AUTO: Final = "auto"
 MODE_MANUAL: Final = "manual"
+MODE_CLOTHES: Final = "clothes"
+MODE_SHOES: Final = "shoes"
+MODE_QUIET: Final = "quiet"
+MODE_CONTINUEOUS: Final = "continuous"
 
 PRESET_MODE_AUTO: Final = "Auto"
 PRESET_MODE_AUTO_PLASMA_OFF: Final = "Auto (PlasmaWave off)"
@@ -97,7 +111,8 @@ class NumericPresetModes(StrEnum):
 
 
 class Features:
-    """Additional Winix purifier features."""
+    """Additional Winix features."""
 
     supports_brightness_level = False
     supports_child_lock = False
+    supports_uv_sanitize = False

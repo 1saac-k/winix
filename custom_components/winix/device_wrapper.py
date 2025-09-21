@@ -6,6 +6,8 @@ import dataclasses
 
 import aiohttp
 
+# kyet: many work here
+
 from .const import (
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
@@ -40,6 +42,7 @@ class MyWinixDeviceStub:
     filter_replace_date: str
     model: str
     sw_version: str
+    product_group: str
 
 
 class WinixDeviceWrapper:
@@ -56,7 +59,12 @@ class WinixDeviceWrapper:
     ) -> None:
         """Initialize the wrapper."""
 
-        self._driver = WinixDriver(device_stub.id, client)
+        if device_stub.product_group.startswith("Air"):
+            self._driver = AirPurifierDevice(device_stub.id, client)
+        elif device_stub.product_group.startswith("Deh"):
+            self._driver = DehumidifierDevice(device_stub.id, client)
+        else  # TODO: check product_group name
+            self._driver = AirConditionerDevice(device_stub.id, client)
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}
@@ -69,6 +77,8 @@ class WinixDeviceWrapper:
         self._logger = logger
         self._child_lock_on = False
         self._brightness_level = None
+        self._uv_sanitize = False
+        self._water_bucket = False
         self._filter_alarm_duration = filter_alarm_duration_hours
 
         self.device_stub = device_stub
@@ -78,6 +88,9 @@ class WinixDeviceWrapper:
         if device_stub.model.lower().startswith("c610"):
             self._features.supports_brightness_level = True
             self._features.supports_child_lock = True
+        elif device_stub.model.lower().startswith("dxw*-21*"):
+            self._features.supports_child_lock = True
+            self._features.uv_sanitize = True
 
         logger.debug(
             "%s: created device with filter_alarm_duration=%d",
@@ -109,8 +122,10 @@ class WinixDeviceWrapper:
         if self._state.get(ATTR_AIRFLOW) == AIRFLOW_SLEEP:
             self._sleep = True
 
+        self._water_bucket = self._state.get(ATTR_WATER_BUCKET) == ON_VALUE
+
         self._logger.debug(
-            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s",
+            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s water_bucket=%s",
             self._alias,
             self._on,
             self._auto,
@@ -118,6 +133,7 @@ class WinixDeviceWrapper:
             self._sleep,
             self._state.get(ATTR_AIRFLOW),
             self._plasma_on,
+            self._water_bucket,
         )
 
     def get_state(self) -> dict[str, str]:
@@ -230,7 +246,7 @@ class WinixDeviceWrapper:
         if not self._features.supports_child_lock or self._child_lock_on:
             return False
 
-        await self._driver.child_lock_on()
+        await self._driver.control(ATTR_CHILD_LOCK, ON_VALUE)
         self._child_lock_on = True
         return True
 
@@ -240,7 +256,7 @@ class WinixDeviceWrapper:
         if not self._features.supports_child_lock or not self._child_lock_on:
             return False
 
-        await self._driver.child_lock_off()
+        await self._driver.control(ATTR_CHILD_LOCK, OFF_VALUE)
         self._child_lock_on = False
         return True
 
@@ -259,6 +275,31 @@ class WinixDeviceWrapper:
 
         await self._driver.set_brightness_level(value)
         self._brightness_level = value
+        return True
+
+    @property
+    def is_uv_sanitize_on(self) -> bool:
+        """Return if uv sanitize is on."""
+        return self._uv_sanitize
+
+    async def async_uv_sanitize_on(self) -> bool:
+        """Turn on uv sanitize."""
+
+        if not self._features.supports_uv_sanitize or self._uv_sanitize:
+            return False
+
+        await self._driver.control(ATTR_UV_SANITIZE, ON_VALUE)
+        self._uv_sanitize = True
+        return True
+
+    async def async_child_lock_off(self) -> bool:
+        """Turn off uv sanitize."""
+
+        if not self._features.supports_uv_sanitize or not self._uv_sanitize:
+            return False
+
+        await self._driver.control(ATTR_UV_SANITIZE, OFF_VALUE)
+        self._uv_sanitize = False
         return True
 
     async def async_manual(self) -> None:
@@ -334,3 +375,9 @@ class WinixDeviceWrapper:
         elif preset_mode == PRESET_MODE_MANUAL_PLASMA_OFF:
             await self.async_manual()
             await self.async_plasmawave_off(True)
+
+    @property
+    def is_water_bucket_available(self) -> bool:
+        """Return if water bucket available."""
+        return self._water_bucket
+

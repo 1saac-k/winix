@@ -58,6 +58,8 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         select_option_fn=lambda device, value: device.async_set_brightness_level(
             parse_brightness_level(value)
         ),
+        # kyet: add airflow
+        # kyet: timer는 select로? 아니면 number로?
     ),
 )
 
