@@ -202,9 +202,10 @@ class WinixDeviceWrapper:
             await self._driver.turn_on()
 
     async def async_turn_on(self) -> None:
-        """Turn on the purifier in Auto mode."""
+        """Turn on the device. Air purifiers enter Auto mode; other devices simply power on."""
         await self.async_ensure_on()
-        await self.async_auto()
+        if self.is_air_purifier:
+            await self.async_auto()
 
     async def async_turn_off(self) -> None:
         """Turn off the purifier."""
@@ -264,7 +265,7 @@ class WinixDeviceWrapper:
         if not self._features.supports_child_lock or self._child_lock_on:
             return False
 
-        await self._driver.child_lock_on()
+        await self._driver.control(ATTR_CHILD_LOCK, ON_VALUE)
         self._child_lock_on = True
         return True
 
@@ -274,7 +275,7 @@ class WinixDeviceWrapper:
         if not self._features.supports_child_lock or not self._child_lock_on:
             return False
 
-        await self._driver.child_lock_off()
+        await self._driver.control(ATTR_CHILD_LOCK, OFF_VALUE)
         self._child_lock_on = False
         return True
 
