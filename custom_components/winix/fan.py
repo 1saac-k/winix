@@ -54,7 +54,9 @@ async def async_setup_entry(
     data = hass.data[WINIX_DOMAIN][entry.entry_id]
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]
     entities = [
-        WinixPurifier(wrapper, manager) for wrapper in manager.get_device_wrappers()
+        WinixPurifier(wrapper, manager)
+        for wrapper in manager.get_device_wrappers()
+        if wrapper.is_air_purifier
     ]
     data[WINIX_DATA_KEY] = entities
     async_add_entities(entities)

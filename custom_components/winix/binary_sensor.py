@@ -30,6 +30,7 @@ class WinixBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describe a Winix binary sensor entity."""
 
     is_on: Callable[[WinixDeviceWrapper], bool]
+    exists_fn: Callable[[WinixDeviceWrapper], bool] = lambda _: True
 
 
 BINARY_SENSOR_DESCRIPTIONS: tuple[WinixBinarySensorEntityDescription, ...] = (
@@ -39,6 +40,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[WinixBinarySensorEntityDescription, ...] = (
         icon="mdi:bucket-outline",
         name="Water Bucket Full",
         is_on=lambda device: not device.is_water_bucket_available,
+        exists_fn=lambda device: device.is_dehumidifier,
     ),
 )
 
@@ -56,6 +58,7 @@ async def async_setup_entry(
         WinixBinarySensor(wrapper, manager, description)
         for description in BINARY_SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
+        if description.exists_fn(wrapper)
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s binary sensors", len(entities))

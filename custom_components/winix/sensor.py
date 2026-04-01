@@ -129,6 +129,7 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
+        if wrapper.is_air_purifier
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))

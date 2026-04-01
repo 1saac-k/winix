@@ -150,8 +150,18 @@ class WinixDeviceWrapper:
 
     @property
     def features(self) -> Features:
-        """Return the purifiers features."""
+        """Return device features."""
         return self._features
+
+    @property
+    def is_air_purifier(self) -> bool:
+        """Return True if this device is an air purifier."""
+        return isinstance(self._driver, AirPurifierDevice)
+
+    @property
+    def is_dehumidifier(self) -> bool:
+        """Return True if this device is a dehumidifier."""
+        return isinstance(self._driver, DehumidifierDevice)
 
     @property
     def is_on(self) -> bool:
