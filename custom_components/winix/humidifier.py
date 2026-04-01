@@ -116,10 +116,10 @@ class WinixDehumidifier(WinixEntity, HumidifierEntity):
         if state is None:
             return None
         power = state.get(ATTR_POWER)
-        if power == OFF_DRY_VALUE:
-            return HumidifierAction.DRYING
         if power == ON_VALUE:
-            return HumidifierAction.HUMIDIFYING
+            return HumidifierAction.DRYING
+        if power == OFF_DRY_VALUE:
+            return HumidifierAction.IDLE
         return HumidifierAction.OFF
 
     @property
