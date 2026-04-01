@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import LOGGER, WINIX_DOMAIN
+from .const import DEFAULT_FILTER_ALARM_DURATION_HOURS, LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
 from .helpers import Helpers
 
@@ -93,18 +93,23 @@ class WinixManager(DataUpdateCoordinator):
 
         if device_stubs:
             for device_stub in device_stubs:
-                filter_alarm_duration = await Helpers.get_filter_alarm_duration(
-                    self._client, token, uuid, device_stub.id
-                )
+                product_group = device_stub.product_group or ""
+                if product_group.startswith("Air"):
+                    filter_alarm_duration = await Helpers.get_filter_alarm_duration(
+                        self._client, token, uuid, device_stub.id
+                    )
+                else:
+                    filter_alarm_duration = DEFAULT_FILTER_ALARM_DURATION_HOURS
+
                 self._device_wrappers.append(
                     WinixDeviceWrapper(
                         self._client, device_stub, filter_alarm_duration, LOGGER
                     )
                 )
 
-            LOGGER.info("%d purifiers found", len(self._device_wrappers))
+            LOGGER.info("%d devices found", len(self._device_wrappers))
         else:
-            LOGGER.info("No purifiers found")
+            LOGGER.info("No devices found")
 
     async def async_update(self, now=None) -> None:
         """Asynchronously update all the devices."""
