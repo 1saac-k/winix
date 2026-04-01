@@ -96,6 +96,7 @@ class WinixDeviceWrapper:
         elif product_group.startswith("Deh"):
             self._features.supports_child_lock = True
             self._features.supports_uv_sanitize = True
+            self._features.supports_fan_speed_select = True
 
         logger.debug(
             "%s: created device with filter_alarm_duration=%d",
