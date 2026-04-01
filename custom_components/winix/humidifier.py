@@ -59,12 +59,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Winix dehumidifier entities."""
+    from .driver import DehumidifierDevice
+
     data = hass.data[WINIX_DOMAIN][entry.entry_id]
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]
     entities = [
         WinixDehumidifier(wrapper, manager)
         for wrapper in manager.get_device_wrappers()
-        if hasattr(wrapper._driver, "set_mode")  # only dehumidifier devices
+        if isinstance(wrapper._driver, DehumidifierDevice)
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s Winix dehumidifiers", len(entities))
@@ -182,7 +184,7 @@ class WinixDehumidifier(WinixEntity, HumidifierEntity):
             )
             return
 
-        await self.device_wrapper._driver.set_humidity(humidity)
+        await self.device_wrapper.async_set_humidity(humidity)
         self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str) -> None:
@@ -191,10 +193,10 @@ class WinixDehumidifier(WinixEntity, HumidifierEntity):
             LOGGER.warning("Unknown dehumidifier mode: %s", mode)
             return
 
-        await self.device_wrapper._driver.set_mode(mode)
+        await self.device_wrapper.async_set_dehumidifier_mode(mode)
         self.async_write_ha_state()
 
     async def async_set_fan_speed(self, speed: str) -> None:
         """Set fan speed."""
-        await self.device_wrapper._driver.set_fan_speed(speed)
+        await self.device_wrapper.async_set_fan_speed(speed)
         self.async_write_ha_state()

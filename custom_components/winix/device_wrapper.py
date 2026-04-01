@@ -12,9 +12,11 @@ from .const import (
     ATTR_AIRFLOW,
     ATTR_BRIGHTNESS_LEVEL,
     ATTR_CHILD_LOCK,
+    ATTR_CURRENT_HUMIDITY,
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
+    ATTR_TARGET_HUMIDITY,
     ATTR_UV_SANITIZE,
     ATTR_WATER_BUCKET,
     MODE_AUTO,
@@ -385,3 +387,19 @@ class WinixDeviceWrapper:
     def is_water_bucket_available(self) -> bool:
         """Return True if the water bucket is not full and not detached."""
         return not self._water_bucket
+
+    # ------------------------------------------------------------------
+    # Dehumidifier-specific methods
+    # ------------------------------------------------------------------
+
+    async def async_set_dehumidifier_mode(self, mode: str) -> None:
+        """Set the dehumidifier operating mode."""
+        await self._driver.set_mode(mode)
+
+    async def async_set_humidity(self, humidity: int) -> None:
+        """Set the target humidity (35-70 %, 5 % steps)."""
+        await self._driver.set_humidity(humidity)
+
+    async def async_set_fan_speed(self, speed: str) -> None:
+        """Set the dehumidifier fan speed."""
+        await self._driver.set_fan_speed(speed)
