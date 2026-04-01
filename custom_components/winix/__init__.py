@@ -38,7 +38,14 @@ from .const import (
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
 
-SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR, Platform.SELECT, Platform.SWITCH]
+SUPPORTED_PLATFORMS = [
+    Platform.BINARY_SENSOR,
+    Platform.FAN,
+    Platform.HUMIDIFIER,
+    Platform.SENSOR,
+    Platform.SELECT,
+    Platform.SWITCH,
+]
 DEFAULT_SCAN_INTERVAL: Final = 30
 
 
