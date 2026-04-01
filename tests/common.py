@@ -86,6 +86,8 @@ def build_mock_wrapper(index: Number = 0) -> WinixDeviceWrapper:
 
     device_stub.mac = f"f190d35456d{index}"
     device_stub.alias = f"Purifier{index}"
+    device_stub.model = "C545"
+    device_stub.product_group = "Air01"
 
     logger = Mock()
     logger.debug = Mock()

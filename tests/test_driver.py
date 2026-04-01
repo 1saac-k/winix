@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.winix.driver import WinixDriver
+from custom_components.winix.driver import AirPurifierDevice
 
 
-@patch("custom_components.winix.driver.WinixDriver._rpc_attr")
+@patch("custom_components.winix.driver.WinixDevice._rpc_attr")
 @pytest.mark.parametrize(
     ("method", "category", "value"),
     [
@@ -30,8 +30,8 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
     await getattr(mock_driver, method)()
     assert mock_rpc_attr.call_count == 1
     assert mock_rpc_attr.call_args[0] == (
-        WinixDriver.category_keys[category],
-        WinixDriver.state_keys[category][value],
+        AirPurifierDevice.category_keys[category],
+        AirPurifierDevice.state_keys[category][value],
     )
 
 
@@ -45,9 +45,7 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
     indirect=["mock_driver_with_payload"],
 )
 async def test_get_state(mock_driver_with_payload, expected) -> None:
-    """Test get_state."""
-
-    # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
+    """Test get_state for AirPurifierDevice."""
 
     state = await mock_driver_with_payload.get_state()
     assert state == expected

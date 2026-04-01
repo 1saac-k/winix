@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 import pytest
 
 from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
-from custom_components.winix.driver import WinixDriver
+from custom_components.winix.driver import AirPurifierDevice, WinixDriver
 
 from .common import TEST_DEVICE_ID
 
@@ -22,6 +22,7 @@ async def device_stub() -> MyWinixDeviceStub:
         filter_replace_date="filterReplaceDate",
         model="modelName",
         sw_version="mcuVer",
+        product_group="Air01",
     )
 
 
@@ -84,16 +85,16 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
 
 
 @pytest.fixture
-def mock_driver() -> WinixDriver:
-    """Return a mocked WinixDriver instance."""
+def mock_driver() -> AirPurifierDevice:
+    """Return a mocked AirPurifierDevice instance."""
     client = Mock()
     device_id = "device_1"
-    return WinixDriver(device_id, client)
+    return AirPurifierDevice(device_id, client)
 
 
 @pytest.fixture
-def mock_driver_with_payload(request) -> WinixDriver:
-    """Return a mocked WinixDriver instance."""
+def mock_driver_with_payload(request) -> AirPurifierDevice:
+    """Return a mocked AirPurifierDevice instance."""
 
     json_value = {"body": {"data": [{"attributes": request.param}]}}
 
@@ -105,4 +106,4 @@ def mock_driver_with_payload(request) -> WinixDriver:
     client.get = AsyncMock(return_value=response)
 
     device_id = "device_1"
-    return WinixDriver(device_id, client)
+    return AirPurifierDevice(device_id, client)
