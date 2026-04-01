@@ -16,6 +16,7 @@ from .const import (
     ATTR_PLASMA,
     ATTR_POWER,
     ATTR_UV_SANITIZE,
+    ATTR_WATER_BUCKET,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -80,6 +81,7 @@ class WinixDeviceWrapper:
         self._child_lock_on = False
         self._brightness_level = None
         self._uv_sanitize = False
+        self._water_bucket = False
         self._filter_alarm_duration = filter_alarm_duration_hours
 
         self.device_stub = device_stub
@@ -124,9 +126,10 @@ class WinixDeviceWrapper:
             self._sleep = True
 
         self._uv_sanitize = self._state.get(ATTR_UV_SANITIZE) == ON_VALUE
+        self._water_bucket = self._state.get(ATTR_WATER_BUCKET) == ON_VALUE
 
         self._logger.debug(
-            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s, uv_sanitize=%s",
+            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s, uv_sanitize=%s, water_bucket=%s",
             self._alias,
             self._on,
             self._auto,
@@ -135,6 +138,7 @@ class WinixDeviceWrapper:
             self._state.get(ATTR_AIRFLOW),
             self._plasma_on,
             self._uv_sanitize,
+            self._water_bucket,
         )
 
     def get_state(self) -> dict[str, str]:
@@ -376,3 +380,8 @@ class WinixDeviceWrapper:
         elif preset_mode == PRESET_MODE_MANUAL_PLASMA_OFF:
             await self.async_manual()
             await self.async_plasmawave_off(True)
+
+    @property
+    def is_water_bucket_available(self) -> bool:
+        """Return True if the water bucket is not full and not detached."""
+        return not self._water_bucket
