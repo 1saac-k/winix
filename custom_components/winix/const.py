@@ -26,6 +26,8 @@ ATTR_LOCATION: Final = "location"
 ATTR_MODE: Final = "mode"
 ATTR_PLASMA: Final = "plasma"
 ATTR_POWER: Final = "power"
+ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
+ATTR_CHILD_LOCK: Final = "child_lock"
 
 SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_AQI: Final = "aqi"

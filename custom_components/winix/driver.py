@@ -7,12 +7,7 @@ from typing import Final
 
 import aiohttp
 
-from .const import LOGGER
-
-# Modified from https://github.com/hfern/winix to support async operations
-
-ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
-ATTR_CHILD_LOCK: Final = "child_lock"
+from .const import ATTR_BRIGHTNESS_LEVEL, ATTR_CHILD_LOCK, LOGGER
 
 
 @unique
