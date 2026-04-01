@@ -145,13 +145,9 @@ custom_components/winix/
 
 ## 남은 작업
 
-- [ ] 제습기 current_humidity sensor 추가 (sensor.py에 dehumidifier용 description 추가)
-- [ ] 제습기 target_humidity sensor 추가 여부 검토 (humidifier entity에 이미 노출됨)
 - [ ] 에어컨 (AirConditionerDevice) 구현 - 패킷 미확인, 향후
-- [ ] 테스트 코드 업데이트 (tests/ 디렉토리)
-- [ ] strings.json, translations/en.json 업데이트
-- [ ] services.yaml 업데이트 (제습기 서비스 추가)
-- [ ] const.py: MODE_CONTINUEOUS → MODE_CONTINUOUS 오타 수정 (driver.py와 통일됨)
+- [ ] 제습기 target_humidity sensor 추가 여부 검토 (humidifier entity에 이미 노출됨)
+- [ ] services.yaml 업데이트 (제습기 전용 서비스 필요 시 - 현재는 표준 entity로 충분)
 
 ---
 
@@ -164,9 +160,11 @@ custom_components/winix/
 5. [완료] humidifier.py 완성
 6. [완료] select.py 제습기 airflow 추가
 7. [완료] number.py 타이머 추가
-8. [ ] 제습기 humidity sensor 추가
-9. [ ] strings.json / translations 업데이트
-10. [ ] 테스트 코드 업데이트
+8. [완료] sensor.py 제습기 current_humidity sensor 추가
+9. [완료] strings.json / translations 업데이트
+10. [완료] 테스트 코드 업데이트 (conftest, test_driver, test_device_wrapper, common)
+11. [완료] manager.py: 공기청정기만 filter alarm 조회
+12. [완료] 모듈 docstring 정리 (Air Purifier 제거)
 
 ---
 
