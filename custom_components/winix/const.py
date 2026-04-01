@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__package__)
 
 WINIX_DOMAIN: Final = "winix"
 
-WINIX_NAME: Final = "Winix Purifier"
+WINIX_NAME: Final = "Winix"
 WINIX_DATA_KEY: Final = "fan_winix_air_purifier"
 WINIX_DATA_COORDINATOR: Final = "coordinator"
 WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
