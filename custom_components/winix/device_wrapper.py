@@ -15,6 +15,7 @@ from .const import (
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
+    ATTR_UV_SANITIZE,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -78,6 +79,7 @@ class WinixDeviceWrapper:
         self._logger = logger
         self._child_lock_on = False
         self._brightness_level = None
+        self._uv_sanitize = False
         self._filter_alarm_duration = filter_alarm_duration_hours
 
         self.device_stub = device_stub
@@ -89,6 +91,7 @@ class WinixDeviceWrapper:
             self._features.supports_child_lock = True
         elif product_group.startswith("Deh"):
             self._features.supports_child_lock = True
+            self._features.supports_uv_sanitize = True
 
         logger.debug(
             "%s: created device with filter_alarm_duration=%d",
@@ -120,8 +123,10 @@ class WinixDeviceWrapper:
         if self._state.get(ATTR_AIRFLOW) == AIRFLOW_SLEEP:
             self._sleep = True
 
+        self._uv_sanitize = self._state.get(ATTR_UV_SANITIZE) == ON_VALUE
+
         self._logger.debug(
-            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s",
+            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s, uv_sanitize=%s",
             self._alias,
             self._on,
             self._auto,
@@ -129,6 +134,7 @@ class WinixDeviceWrapper:
             self._sleep,
             self._state.get(ATTR_AIRFLOW),
             self._plasma_on,
+            self._uv_sanitize,
         )
 
     def get_state(self) -> dict[str, str]:
@@ -270,6 +276,31 @@ class WinixDeviceWrapper:
 
         await self._driver.set_brightness_level(value)
         self._brightness_level = value
+        return True
+
+    @property
+    def is_uv_sanitize_on(self) -> bool:
+        """Return if UV sanitize is on."""
+        return self._uv_sanitize
+
+    async def async_uv_sanitize_on(self) -> bool:
+        """Turn on UV sanitize."""
+
+        if not self._features.supports_uv_sanitize or self._uv_sanitize:
+            return False
+
+        await self._driver.control(ATTR_UV_SANITIZE, ON_VALUE)
+        self._uv_sanitize = True
+        return True
+
+    async def async_uv_sanitize_off(self) -> bool:
+        """Turn off UV sanitize."""
+
+        if not self._features.supports_uv_sanitize or not self._uv_sanitize:
+            return False
+
+        await self._driver.control(ATTR_UV_SANITIZE, OFF_VALUE)
+        self._uv_sanitize = False
         return True
 
     async def async_manual(self) -> None:
