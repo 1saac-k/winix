@@ -42,6 +42,7 @@ SUPPORTED_PLATFORMS = [
     Platform.BINARY_SENSOR,
     Platform.FAN,
     Platform.HUMIDIFIER,
+    Platform.NUMBER,
     Platform.SENSOR,
     Platform.SELECT,
     Platform.SWITCH,

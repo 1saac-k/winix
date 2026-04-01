@@ -415,3 +415,7 @@ class WinixDeviceWrapper:
     async def async_set_fan_speed(self, speed: str) -> None:
         """Set the dehumidifier fan speed."""
         await self._driver.set_fan_speed(speed)
+
+    async def async_set_timer(self, hours: int) -> None:
+        """Set the dehumidifier timer (0 = off, 1-24 hours)."""
+        await self._driver.set_timer(hours)
