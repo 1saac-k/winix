@@ -59,14 +59,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Winix dehumidifier entities."""
-    from .driver import DehumidifierDevice
-
     data = hass.data[WINIX_DOMAIN][entry.entry_id]
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]
     entities = [
         WinixDehumidifier(wrapper, manager)
         for wrapper in manager.get_device_wrappers()
-        if isinstance(wrapper._driver, DehumidifierDevice)
+        if wrapper.is_dehumidifier
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s Winix dehumidifiers", len(entities))
