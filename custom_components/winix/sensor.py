@@ -1,19 +1,20 @@
-"""Winix Air Purfier Air QValue Sensor."""
+"""Winix sensor entities (air quality, filter life, humidity)."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -23,6 +24,7 @@ from .const import (
     ATTR_AIR_AQI,
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
+    ATTR_CURRENT_HUMIDITY,
     ATTR_FILTER_HOUR,
     ATTR_FILTER_REPLACEMENT_CYCLE,
     LOGGER,
@@ -83,10 +85,14 @@ class WininxSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
 
     value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType]
-    extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]]
+    extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]] | None = None
+    exists_fn: Callable[[WinixDeviceWrapper], bool] = field(
+        default=lambda _: True
+    )
 
 
 SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
+    # --- Air purifier sensors ---
     WininxSensorEntityDescription(
         key=SENSOR_AIR_QVALUE,
         icon="mdi:cloud",
@@ -95,6 +101,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
         extra_state_attributes_fn=get_air_quality_attr,
+        exists_fn=lambda device: device.is_air_purifier,
     ),
     WininxSensorEntityDescription(
         key=SENSOR_FILTER_LIFE,
@@ -104,6 +111,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
         extra_state_attributes_fn=get_filter_replacement_cycle,
+        exists_fn=lambda device: device.is_air_purifier,
     ),
     WininxSensorEntityDescription(
         key=SENSOR_AQI,
@@ -111,7 +119,17 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
-        extra_state_attributes_fn=None,
+        exists_fn=lambda device: device.is_air_purifier,
+    ),
+    # --- Dehumidifier sensors ---
+    WininxSensorEntityDescription(
+        key="current_humidity",
+        device_class=SensorDeviceClass.HUMIDITY,
+        name="Current Humidity",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state, wrapper: state.get(ATTR_CURRENT_HUMIDITY),
+        exists_fn=lambda device: device.is_dehumidifier,
     ),
 )
 
@@ -129,7 +147,7 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
-        if wrapper.is_air_purifier
+        if description.exists_fn(wrapper)
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))
