@@ -18,18 +18,6 @@ from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
 from .helpers import Helpers
 
-# category_keys = {
-#     "power": "A02",
-#     "mode": "A03",
-#     "airflow": "A04",
-#     "aqi": "A05",
-#     "plasma": "A07",
-#     "filter_hour": "A21",
-#     "air_quality": "S07",
-#     "air_qvalue": "S08",
-#     "ambient_light": "S14",
-# }
-
 
 class WinixEntity(CoordinatorEntity):
     """Represents a Winix entity."""
