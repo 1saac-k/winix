@@ -100,54 +100,73 @@ custom_components/winix/
 
 ### const.py
 - [x] `ATTR_BRIGHTNESS_LEVEL`, `ATTR_CHILD_LOCK` → const.py로 이동
-- [x] 제습기 관련 상수 추가
+- [x] 제습기 관련 상수 추가 (ATTR_TARGET_HUMIDITY, ATTR_CURRENT_HUMIDITY, etc.)
+- [x] `DEHUMIDIFIER_FAN_SPEEDS`, `Features.supports_fan_speed_select` 추가
 
 ### driver.py
 - [x] WinixDevice 기반 클래스 + AirPurifierDevice, DehumidifierDevice, AirConditionerDevice 분리
-- [ ] `from .const import *` → 명시적 import로 교체
+- [x] 명시적 import (const의 각 상수 개별 import)
+- [x] DehumidifierDevice에 set_mode, set_fan_speed, set_humidity, set_timer, set_child_lock, set_uv_sanitize 추가
 
 ### device_wrapper.py
 - [x] `product_group` 필드 추가
-- [x] product_group으로 드라이버 선택
-- [ ] `else  # TODO:` 구문 오류 수정 (`else:`)
-- [ ] `self._features.uv_sanitize` → `supports_uv_sanitize` 오타 수정
-- [ ] `async_child_lock_off` 이름 중복 → UV sanitize off는 `async_uv_sanitize_off`로 이름 변경
-- [ ] `elif device_stub.model.lower().startswith("dxw*-21*")` - 와일드카드 미지원
-- [ ] AirPurifierDevice, DehumidifierDevice, AirConditionerDevice import 추가
+- [x] product_group으로 드라이버 선택 (else: 구문 오류 수정 포함)
+- [x] AirPurifierDevice, DehumidifierDevice, AirConditionerDevice import
+- [x] UV sanitize 상태 추적 및 메서드 (async_uv_sanitize_on/off)
+- [x] Water bucket 상태 추적
+- [x] child_lock: 구형 named method 대신 control() 사용
+- [x] async_turn_on: 공기청정기만 auto() 진입
+- [x] is_air_purifier, is_dehumidifier 프로퍼티
+- [x] async_set_dehumidifier_mode, async_set_humidity, async_set_fan_speed, async_set_timer 추가
 
 ### binary_sensor.py
-- [ ] 오타 수정: `WininxBinarySensorEntityDescription` → `WinixBinarySensorEntityDescription`
-- [ ] 오타 수정: `entity_description: WininxSensorEntityDescription` → 올바른 타입
-- [ ] `BINARY_SENSOR_WATER_BUCKET` import 누락 → const에서 import
+- [x] 오타 수정 완료, exists_fn 추가 (dehumidifier만 표시)
+- [x] BINARY_SENSOR_WATER_BUCKET import 완료
 
 ### humidifier.py
-- [ ] 전체 재작성 필요 (fan.py에서 복사 후 미수정)
-- [ ] WinixPurifier → WinixDehumidifier
-- [ ] 팬 관련 import/코드 → 제습기용으로 교체
-- [ ] 습도 설정, 모드 설정, 팬속도 설정 구현
+- [x] 완전히 새로 작성 (fan.py 코드 제거)
+- [x] WinixDehumidifier: HumidifierEntity, 모드/습도/팬속도 지원
+- [x] HumidifierAction.DRYING (dehumidifying), IDLE (off-dry), OFF 사용
+- [x] is_dehumidifier 프로퍼티로 필터링
 
 ### __init__.py
-- [ ] `SUPPORTED_PLATFORMS`에 `Platform.BINARY_SENSOR`, `Platform.HUMIDIFIER` 추가
+- [x] Platform.BINARY_SENSOR, Platform.HUMIDIFIER, Platform.NUMBER 추가
 
-### helpers.py
-- [ ] 물통 알람 기능 추가 여부 검토 (kyet 주석)
+### number.py (신규)
+- [x] 타이머 NumberEntity (0-24h, 1h 단위), dehumidifier만 표시
 
 ### select.py
-- [ ] 제습기용 airflow select 추가
-- [ ] timer 구현 방식 결정 (select vs number)
+- [x] 제습기용 fan_speed select 추가
+
+### helpers.py
+- [ ] 물통 알람 기능 추가 여부 검토 (kyet 주석) - 추후 결정
+
+---
+
+## 남은 작업
+
+- [ ] 제습기 current_humidity sensor 추가 (sensor.py에 dehumidifier용 description 추가)
+- [ ] 제습기 target_humidity sensor 추가 여부 검토 (humidifier entity에 이미 노출됨)
+- [ ] 에어컨 (AirConditionerDevice) 구현 - 패킷 미확인, 향후
+- [ ] 테스트 코드 업데이트 (tests/ 디렉토리)
+- [ ] strings.json, translations/en.json 업데이트
+- [ ] services.yaml 업데이트 (제습기 서비스 추가)
+- [ ] const.py: MODE_CONTINUEOUS → MODE_CONTINUOUS 오타 수정 (driver.py와 통일됨)
 
 ---
 
 ## 구현 우선순위
 
-1. 커밋 분할 (aba78765 → 작은 단위)
-2. binary_sensor.py 버그 수정
-3. device_wrapper.py 버그 수정
-4. __init__.py 플랫폼 등록
-5. humidifier.py 완성
-6. 제습기 device_wrapper 메서드 추가 (set_mode, set_humidity, set_fan_speed 등)
-7. select.py 제습기 airflow 추가
-8. timer 구현
+1. [완료] 커밋 분할 (aba78765 → 10개 단위)
+2. [완료] binary_sensor.py 버그 수정 및 dehumidifier 필터링
+3. [완료] device_wrapper.py 버그 수정 및 제습기 메서드 추가
+4. [완료] __init__.py 플랫폼 등록 (binary_sensor, humidifier, number)
+5. [완료] humidifier.py 완성
+6. [완료] select.py 제습기 airflow 추가
+7. [완료] number.py 타이머 추가
+8. [ ] 제습기 humidity sensor 추가
+9. [ ] strings.json / translations 업데이트
+10. [ ] 테스트 코드 업데이트
 
 ---
 
