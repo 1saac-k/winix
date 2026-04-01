@@ -28,7 +28,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import WinixDriver
+from .driver import AirConditionerDevice, AirPurifierDevice, DehumidifierDevice
 
 
 @dataclasses.dataclass
@@ -42,6 +42,7 @@ class MyWinixDeviceStub:
     filter_replace_date: str
     model: str
     sw_version: str
+    product_group: str
 
 
 class WinixDeviceWrapper:
@@ -58,7 +59,13 @@ class WinixDeviceWrapper:
     ) -> None:
         """Initialize the wrapper."""
 
-        self._driver = WinixDriver(device_stub.id, client)
+        product_group = device_stub.product_group or ""
+        if product_group.startswith("Air"):
+            self._driver = AirPurifierDevice(device_stub.id, client)
+        elif product_group.startswith("Deh"):
+            self._driver = DehumidifierDevice(device_stub.id, client)
+        else:  # TODO: identify product_group value for air conditioner
+            self._driver = AirConditionerDevice(device_stub.id, client)
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}
@@ -79,6 +86,8 @@ class WinixDeviceWrapper:
 
         if device_stub.model.lower().startswith("c610"):
             self._features.supports_brightness_level = True
+            self._features.supports_child_lock = True
+        elif product_group.startswith("Deh"):
             self._features.supports_child_lock = True
 
         logger.debug(
