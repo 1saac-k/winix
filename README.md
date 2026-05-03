@@ -80,6 +80,21 @@ If the purifiers support this feature, then you will see a selection list under 
     Create a second Winix account with no devices linked. Then from your main account, navigate to `Device Settings > Device Sharing > Add a user` and invite the second account.
 
 
+## Translations
+
+The following languages are available. Entity names and state labels are displayed in the language configured in your Home Assistant instance.
+
+| Language | Code | Status |
+|----------|------|--------|
+| English | `en` | Verified |
+| Korean | `ko` | Verified |
+| German | `de` | Machine-translated — may contain errors |
+| French | `fr` | Machine-translated — may contain errors |
+| Dutch | `nl` | Machine-translated — may contain errors |
+| Japanese | `ja` | Machine-translated — may contain errors |
+
+Corrections and contributions for any language are welcome via pull request.
+
 ## Breaking Changes
 
 - [1.1.0](https://github.com/iprak/winix/releases) changed the sensor implementation. The aqi sensor id might be different now.
