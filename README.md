@@ -1,6 +1,7 @@
 
 ![GitHub Release](https://img.shields.io/github/v/release/iprak/winix)
 [![License](https://img.shields.io/packagist/l/phplicengine/bitly)](https://packagist.org/packages/phplicengine/bitly)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 <a href="https://buymeacoffee.com/leolite1q" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" height="20px"></a>
 
 ## Summary
@@ -13,7 +14,13 @@ Dehumidifiers: confirmed on [DXWE210](https://www.winix.com/product/1689) (Korea
 
 ## Installation
 
-This can be installed by copying all the files from `custom_components/winix/` to `<config directory>/custom_components/winix/`. Next add Winix integration from `Add Integration` and use your credentials from Winix mobile app.
+If you have [HACS](https://hacs.xyz/) installed, click the button below to open the repository directly in your Home Assistant instance.
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=iprak&repository=winix&category=integration)
+
+Alternatively, you can install it manually by copying all files from `custom_components/winix/` to `<config directory>/custom_components/winix/` and restarting Home Assistant.
+
+Once installed, add the Winix integration from `Add Integration` and sign in with your Winix mobile app credentials.
 
 ### Air Purifier
 
